@@ -11,8 +11,9 @@ import {
 } from "@/core/application/prompts/create-prompt.dto";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
+import { CopyButton } from "../button-actions/copy-button";
 
 export const PromptForm = () => {
   const router = useRouter();
@@ -24,12 +25,15 @@ export const PromptForm = () => {
     },
   });
 
+  const content = useWatch({ control: form.control, name: "content" });
+
   const onSubmit = async (data: CreatePromptDTO) => {
     const result = await createPromptAction(data);
     console.log("Submit", result);
 
     if (!result.success) {
       toast.error(result.message);
+      return;
     }
 
     toast.success(result.message);
@@ -39,6 +43,8 @@ export const PromptForm = () => {
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       <header className="flex flex-wrap gap-2 items-center mb-6 justify-end">
+        <CopyButton content={content} />
+
         <Button type="submit" size="sm">
           Salvar
         </Button>
