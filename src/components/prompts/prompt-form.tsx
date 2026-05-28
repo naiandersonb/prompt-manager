@@ -1,17 +1,21 @@
 "use client";
 
+import { createPromptAction } from "@/app/actions/prompt.actions";
+import { Button } from "@/components/ui/button";
+import { Field, FieldContent } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   CreatePromptDTO,
   createPromptSchema,
 } from "@/core/application/prompts/create-prompt.dto";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
-import { Button } from "../ui/button";
-import { Field, FieldContent } from "../ui/field";
-import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
+import { toast } from "sonner";
 
 export const PromptForm = () => {
+  const router = useRouter();
   const form = useForm<CreatePromptDTO>({
     resolver: zodResolver(createPromptSchema),
     defaultValues: {
@@ -20,8 +24,16 @@ export const PromptForm = () => {
     },
   });
 
-  const onSubmit = (data: CreatePromptDTO) => {
-    console.log(data);
+  const onSubmit = async (data: CreatePromptDTO) => {
+    const result = await createPromptAction(data);
+    console.log("Submit", result);
+
+    if (!result.success) {
+      toast.error(result.message);
+    }
+
+    toast.success(result.message);
+    router.refresh();
   };
 
   return (
