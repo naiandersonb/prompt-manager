@@ -2,7 +2,7 @@
 
 import { createPromptAction } from "@/app/actions/prompt.actions";
 import { Button } from "@/components/ui/button";
-import { Field, FieldContent } from "@/components/ui/field";
+import { Field, FieldContent, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -60,12 +60,16 @@ export const PromptForm = () => {
           >
             <FieldContent>
               <Input
+                aria-invalid={!!form.formState.errors.title}
                 className="text-2xl! py-6"
                 placeholder="Título do prompt"
                 autoFocus
                 {...field}
               />
             </FieldContent>
+            {form.formState.errors.title?.message && (
+              <FieldError>{form.formState.errors.title.message}</FieldError>
+            )}
           </Field>
         )}
       />
@@ -76,14 +80,18 @@ export const PromptForm = () => {
         render={({ field }) => (
           <Field
             orientation="responsive"
-            data-invalid={!!form.formState.errors.title}
+            data-invalid={!!form.formState.errors.content}
           >
             <FieldContent>
               <Textarea
                 placeholder="Digite o conteúdo do prompt..."
+                aria-invalid={!!form.formState.errors.content}
                 {...field}
               />
             </FieldContent>
+            {form.formState.errors.content?.message && (
+              <FieldError>{form.formState.errors.content.message}</FieldError>
+            )}
           </Field>
         )}
       />
