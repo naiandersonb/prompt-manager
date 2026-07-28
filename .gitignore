@@ -43,3 +43,5 @@ next-env.d.ts
 #database
 /pgdata
 /src/generated/prisma
+/playwright-report
+/test-results
