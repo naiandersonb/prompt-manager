@@ -14,6 +14,7 @@ export class PrismaPromptRepository implements PromptRepository {
       },
     });
   }
+
   async findByTitle(title: string): Promise<Prompt | null> {
     const prompt = await this.prisma.prompt.findFirst({
       where: { title },
@@ -43,5 +44,25 @@ export class PrismaPromptRepository implements PromptRepository {
       orderBy: { createdAt: "desc" },
     });
     return prompts;
+  }
+
+  async update(id: string, data: Partial<CreatePromptDTO>): Promise<Prompt> {
+    const updated = await this.prisma.prompt.update({
+      where: { id },
+      data: {
+        ...(data.title !== undefined ? { title: data.title } : {}),
+        ...(data.content !== undefined ? { content: data.content } : {}),
+      },
+    });
+
+    return updated;
+  }
+
+  async findById(id: string): Promise<Prompt | null> {
+    const prompt = await this.prisma.prompt.findUnique({
+      where: { id },
+    });
+
+    return prompt;
   }
 }
