@@ -1,4 +1,5 @@
 import { CreatePromptDTO } from "@/core/application/prompts/create-prompt.dto";
+import { UpdatePromptDTO } from "@/core/application/prompts/update-prompt.dto";
 import { Prompt } from "@/core/domain/prompts/prompt.entity";
 import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaPromptRepository } from "@/infra/repository/prisma-prompt.repository";
@@ -7,10 +8,16 @@ type PromptDelegateMock = {
   create: jest.MockedFunction<
     (args: { data: CreatePromptDTO }) => Promise<void>
   >;
+  update: jest.MockedFunction<
+    (args: { where: { id: string }; data: UpdatePromptDTO }) => Promise<Prompt>
+  >;
   findFirst: jest.MockedFunction<
     (args: {
       where: { title: string };
     }) => Promise<Pick<Prompt, "id" | "title" | "content"> | null>
+  >;
+  findUnique: jest.MockedFunction<
+    (args: { where: { id: string } }) => Promise<Prompt | null>
   >;
   findMany: jest.MockedFunction<
     (args: {
@@ -33,8 +40,10 @@ function createMockPrisma() {
   const mock: PrismaMock = {
     prompt: {
       create: jest.fn(),
+      update: jest.fn(),
       findMany: jest.fn(),
       findFirst: jest.fn(),
+      findUnique: jest.fn(),
     },
   };
 
@@ -62,6 +71,104 @@ describe("PrismaPromptRepository", () => {
       expect(prisma.prompt.create).toHaveBeenCalledWith({
         data: input,
       });
+    });
+  });
+
+  describe("update", () => {
+    it("deve atualizar e retornar o prompt", async () => {
+      const now = new Date();
+
+      const input = {
+        id: "1",
+        title: "new title",
+        content: "new content",
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      prisma.prompt.update.mockResolvedValue(input);
+
+      const result = await repository.update(input.id, {
+        title: input.title,
+        content: input.content,
+      });
+
+      expect(prisma.prompt.update).toHaveBeenCalledWith({
+        where: { id: input.id },
+        data: { title: input.title, content: input.content },
+      });
+
+      expect(result).toEqual(input);
+    });
+
+    it("deve enviar apenas campos presentes (somente title)", async () => {
+      const now = new Date();
+
+      const input = {
+        id: "1",
+        title: "new title",
+        content: "new content",
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      prisma.prompt.update.mockResolvedValue(input);
+
+      await repository.update(input.id, { title: input.title });
+      const call = prisma.prompt.update.mock.calls[0][0];
+
+      expect(call.where).toEqual({ id: input.id });
+      expect(call.data).toEqual({ title: input.title });
+      expect("content" in call.data).toBe(false);
+    });
+
+    it("deve enviar apenas campos presentes (somente content)", async () => {
+      const now = new Date();
+
+      const input = {
+        id: "1",
+        title: "new title",
+        content: "new content",
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      prisma.prompt.update.mockResolvedValue(input);
+
+      await repository.update(input.id, { content: input.content });
+      const call = prisma.prompt.update.mock.calls[0][0];
+
+      expect(call.where).toEqual({ id: input.id });
+      expect(call.data).toEqual({ content: input.content });
+      expect("title" in call.data).toBe(false);
+    });
+  });
+
+  describe("findById", () => {
+    it("deve retornar um prompt quando existir", async () => {
+      const now = new Date();
+      const input = {
+        id: "1",
+        title: "new title",
+        content: "new content",
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      prisma.prompt.findUnique.mockResolvedValue(input);
+      const result = await repository.findById(input.id);
+
+      expect(prisma.prompt.findUnique).toHaveBeenCalledWith({
+        where: { id: input.id },
+      });
+      expect(result).toEqual(input);
+    });
+
+    it("deve retornar null quando não existir um prompt", async () => {
+      prisma.prompt.findUnique.mockResolvedValue(null);
+      const result = await repository.findById("1");
+
+      expect(result).toBeNull();
     });
   });
 
