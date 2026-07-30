@@ -19,7 +19,7 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { CopyButton } from "../button-actions/copy-button";
 
-type PromptFormProps = {
+export type PromptFormProps = {
   prompt?: Prompt | null;
 };
 export const PromptForm = ({ prompt }: PromptFormProps) => {

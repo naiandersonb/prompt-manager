@@ -1,6 +1,7 @@
 import {
   createPromptAction,
   searchPromptAction,
+  updatePromptAction,
 } from "@/app/actions/prompt.actions";
 import { PromptSummary } from "@/core/domain/prompts/prompt.entity";
 
@@ -8,6 +9,7 @@ jest.mock("@/lib/prisma", () => ({ prisma: {} }));
 
 const mockedSearchExecute = jest.fn();
 const mockedCreateExecute = jest.fn();
+const mockedUpdateExecute = jest.fn();
 
 jest.mock("@/core/application/prompts/search-prompts.use-case", () => ({
   SearchPromptsUseCase: jest
@@ -21,10 +23,17 @@ jest.mock("@/core/application/prompts/create-prompt.use-case", () => ({
     .mockImplementation(() => ({ execute: mockedCreateExecute })),
 }));
 
+jest.mock("@/core/application/prompts/update-prompt.use-case", () => ({
+  UpdatePromptUseCase: jest
+    .fn()
+    .mockImplementation(() => ({ execute: mockedUpdateExecute })),
+}));
+
 describe("Server Actions: Prompts", () => {
   beforeEach(() => {
     mockedSearchExecute.mockReset();
     mockedCreateExecute.mockReset();
+    mockedUpdateExecute.mockReset();
   });
 
   describe("createPromptAction", () => {
@@ -64,6 +73,51 @@ describe("Server Actions: Prompts", () => {
       const result = await createPromptAction(data);
       expect(result?.success).toBeFalsy();
       expect(result?.message).toBe("Falha ao criar o prompt");
+    });
+  });
+
+  describe("UpdatePromptAction", () => {
+    mockedUpdateExecute.mockResolvedValue({});
+    it("deve atualizar com sucesso", async () => {
+      const promptId = "1";
+      const data = { id: promptId, title: "new title", content: "new content" };
+
+      const result = await updatePromptAction(data);
+      expect(result).toMatchObject({
+        success: true,
+        message: "Prompt atualizado com sucesso",
+      });
+    });
+
+    it("deve retornar erro de validação quando os campos faltarem", async () => {
+      const data = { id: "", title: "", content: "" };
+
+      const result = await updatePromptAction(data);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe("Erro de validação");
+      expect(result.errors).toBeDefined();
+    });
+
+    it("deve retornar erro quando o prompt não existir", async () => {
+      mockedUpdateExecute.mockRejectedValue(new Error("PROMPT_NOT_FOUND"));
+      const promptId = "1";
+      const data = { id: promptId, title: "new title", content: "new content" };
+
+      const result = await updatePromptAction(data);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe("Prompt não encontrado");
+    });
+
+    it("deve retornar o erro genérico quando falhar ao atualizar", async () => {
+      mockedUpdateExecute.mockRejectedValue(new Error("unknown"));
+      const promptId = "1";
+      const data = { id: promptId, title: "new title", content: "new content" };
+      const result = await updatePromptAction(data);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe("Falha ao atualizar o prompt");
     });
   });
 
