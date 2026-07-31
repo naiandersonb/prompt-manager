@@ -2,6 +2,7 @@ import { deletePromptAction } from "@/app/actions/prompt.actions";
 import { PromptSummary } from "@/core/domain/prompts/prompt.entity";
 import { Trash as DeleteIcon, Loader2 as LoadingIcon } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -23,6 +24,7 @@ export type PromptCardProps = {
 
 export const PromptCard = ({ prompt }: PromptCardProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
+  const router = useRouter();
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -33,6 +35,8 @@ export const PromptCard = ({ prompt }: PromptCardProps) => {
       } else {
         toast.success(result.message);
       }
+
+      router.refresh();
     } catch (error) {
       const _error = error as Error;
       toast.error(_error.message);

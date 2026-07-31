@@ -74,7 +74,7 @@ export const SidebarContent = ({ prompts }: SidebarContentProps) => {
           <header className="flex items-center justify-center mb-6">
             <Button
               onClick={expandSidebar}
-              variant="icon"
+              size="icon"
               className="hidden md:inline-flex p-2 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-accent-500 rounded-lg transition-colors"
               aria-label="Expandir sidebar"
               title="Expandir sidebar"
@@ -101,7 +101,7 @@ export const SidebarContent = ({ prompts }: SidebarContentProps) => {
             <div className="md:hidden mb-4">
               <div className="flex items-center justify-between">
                 <Button
-                  variant="icon"
+                  size="icon"
                   aria-label="Fechar menu"
                   title="Fechar menu"
                 >
@@ -114,7 +114,7 @@ export const SidebarContent = ({ prompts }: SidebarContentProps) => {
                 <Logo />
                 <Button
                   onClick={collapsedSidebar}
-                  variant="icon"
+                  size="icon"
                   className="hidden md:inline-flex p-2 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-accent-500 rounded-lg transition-colors"
                   title="Minimizar sidebar"
                   aria-label="Minimizar sidebar"
