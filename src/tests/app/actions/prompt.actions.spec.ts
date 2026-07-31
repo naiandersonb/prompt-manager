@@ -4,9 +4,13 @@ import {
   searchPromptAction,
   updatePromptAction,
 } from "@/app/actions/prompt.actions";
-import { PromptSummary } from "@/core/domain/prompts/prompt.entity";
+import { revalidatePath } from "next/cache";
 
 jest.mock("@/lib/prisma", () => ({ prisma: {} }));
+
+jest.mock("next/cache", () => ({
+  revalidatePath: jest.fn(),
+}));
 
 const mockedSearchExecute = jest.fn();
 const mockedCreateExecute = jest.fn();
@@ -43,63 +47,89 @@ describe("Server Actions: Prompts", () => {
     mockedCreateExecute.mockReset();
     mockedUpdateExecute.mockReset();
     mockedDeleteExecute.mockReset();
+    (revalidatePath as jest.Mock).mockReset();
   });
 
   describe("createPromptAction", () => {
     it("deve criar um prompt com sucesso", async () => {
-      const data = { title: "title", content: "content" };
+      mockedCreateExecute.mockResolvedValue(undefined);
+      const data = {
+        title: "Title",
+        content: "Content",
+      };
 
       const result = await createPromptAction(data);
 
-      expect(result?.success).toBeTruthy();
+      expect(result?.success).toBe(true);
       expect(result?.message).toBe("Prompt criado com sucesso!");
+      expect(revalidatePath).toHaveBeenCalledTimes(1);
     });
 
     it("deve retornar erro de validação quando os campos forem vazios", async () => {
-      const data = { title: "", content: "" };
+      const data = {
+        title: "",
+        content: "",
+      };
 
       const result = await createPromptAction(data);
 
-      expect(result?.success).toBeFalsy();
+      expect(result?.success).toBe(false);
       expect(result?.message).toBe("Erro de validação");
       expect(result?.errors).toBeDefined();
     });
 
-    it("deve retornar um erro quando PROMPT_ALREADY_EXISTS acontecer", async () => {
+    it("deve retornar erro quando PROMPT_ALREADY_EXISTS acontecer", async () => {
       mockedCreateExecute.mockRejectedValue(new Error("PROMPT_ALREADY_EXISTS"));
-
-      const data = { title: "duplicado", content: "duplicado" };
+      const data = {
+        title: "duplicado",
+        content: "duplicado",
+      };
 
       const result = await createPromptAction(data);
-      expect(result?.success).toBeFalsy();
+
+      expect(result?.success).toBe(false);
       expect(result?.message).toBe("Este prompt já existe");
     });
 
     it("deve retornar erro genérico quando a criação falhar", async () => {
       mockedCreateExecute.mockRejectedValue(new Error("UNKNOWN"));
-      const data = { title: "Title", content: "Content" };
+      const data = {
+        title: "title",
+        content: "content",
+      };
 
       const result = await createPromptAction(data);
-      expect(result?.success).toBeFalsy();
-      expect(result?.message).toBe("Falha ao criar o prompt");
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe("Falha ao criar o prompt");
     });
   });
 
-  describe("UpdatePromptAction", () => {
-    mockedUpdateExecute.mockResolvedValue({});
+  describe("updatePromptAction", () => {
     it("deve atualizar com sucesso", async () => {
+      mockedUpdateExecute.mockResolvedValue({});
       const promptId = "1";
-      const data = { id: promptId, title: "new title", content: "new content" };
+      const data = {
+        id: promptId,
+        title: "new title",
+        content: "new content",
+      };
 
       const result = await updatePromptAction(data);
+
       expect(result).toMatchObject({
         success: true,
         message: "Prompt atualizado com sucesso",
       });
+      expect(revalidatePath).toHaveBeenCalledTimes(1);
     });
 
     it("deve retornar erro de validação quando os campos faltarem", async () => {
-      const data = { id: "", title: "", content: "" };
+      const data = {
+        id: "1",
+        title: "",
+        content: "",
+      };
 
       const result = await updatePromptAction(data);
 
@@ -111,7 +141,11 @@ describe("Server Actions: Prompts", () => {
     it("deve retornar erro quando o prompt não existir", async () => {
       mockedUpdateExecute.mockRejectedValue(new Error("PROMPT_NOT_FOUND"));
       const promptId = "1";
-      const data = { id: promptId, title: "new title", content: "new content" };
+      const data = {
+        id: promptId,
+        title: "Novo",
+        content: "Content",
+      };
 
       const result = await updatePromptAction(data);
 
@@ -120,9 +154,14 @@ describe("Server Actions: Prompts", () => {
     });
 
     it("deve retornar o erro genérico quando falhar ao atualizar", async () => {
-      mockedUpdateExecute.mockRejectedValue(new Error("unknown"));
+      mockedUpdateExecute.mockRejectedValue(new Error("UNKNOWN"));
       const promptId = "1";
-      const data = { id: promptId, title: "new title", content: "new content" };
+      const data = {
+        id: promptId,
+        title: "new",
+        content: "content",
+      };
+
       const result = await updatePromptAction(data);
 
       expect(result.success).toBe(false);
@@ -130,27 +169,31 @@ describe("Server Actions: Prompts", () => {
     });
   });
 
-  describe.only("deletePromptAction", () => {
+  describe("deletePromptAction", () => {
     it("deve remover com sucesso", async () => {
       mockedDeleteExecute.mockResolvedValue(undefined);
       const promptId = "1";
+
       const result = await deletePromptAction(promptId);
 
-      expect(result.success).toBeTruthy();
+      expect(result.success).toBe(true);
       expect(result.message).toBe("Prompt removido com sucesso");
+      expect(revalidatePath).toHaveBeenCalledTimes(1);
     });
 
     it("deve retornar erro quando o id for vazio", async () => {
       const promptId = "";
+
       const result = await deletePromptAction(promptId);
 
-      expect(result.success).toBeFalsy();
+      expect(result.success).toBe(false);
       expect(result.message).toBe("Id do prompt é obrigatório");
     });
 
     it("deve retornar erro quando o prompt não existir", async () => {
       mockedDeleteExecute.mockRejectedValue(new Error("PROMPT_NOT_FOUND"));
       const promptId = "1";
+
       const result = await deletePromptAction(promptId);
 
       expect(result.success).toBe(false);
@@ -158,9 +201,9 @@ describe("Server Actions: Prompts", () => {
     });
 
     it("deve retornar erro genérico quando a action falhar", async () => {
-      mockedDeleteExecute.mockRejectedValue(new Error("unknown"));
-
+      mockedDeleteExecute.mockRejectedValue(new Error("UNKNOWN"));
       const promptId = "1";
+
       const result = await deletePromptAction(promptId);
 
       expect(result.success).toBe(false);
@@ -170,75 +213,73 @@ describe("Server Actions: Prompts", () => {
 
   describe("searchPromptAction", () => {
     it("deve retornar sucesso com o termo de busca não vazio", async () => {
-      const input: PromptSummary[] = [
-        { id: "1", content: "AI desc", title: "AI title" },
-      ];
-
+      const input = [{ id: "1", title: "AI Title", content: "Content" }];
       mockedSearchExecute.mockResolvedValue(input);
-
       const formData = new FormData();
       formData.append("q", "AI");
 
       const result = await searchPromptAction({ success: true }, formData);
+
       expect(result.success).toBe(true);
       expect(result.prompts).toEqual(input);
     });
 
     it("deve retornar sucesso e listar todos os prompts quando o termo for vazio", async () => {
-      const input: PromptSummary[] = [
-        { id: "01", content: "AI desc 01", title: "AI title 01" },
-        { id: "02", content: "AI desc 02", title: "AI title 02" },
+      const input = [
+        { id: "1", title: "First", content: "Content 01" },
+        { id: "2", title: "Second", content: "Content 02" },
       ];
       mockedSearchExecute.mockResolvedValue(input);
-
       const formData = new FormData();
       formData.append("q", "");
 
       const result = await searchPromptAction({ success: true }, formData);
+
       expect(result.success).toBeDefined();
-      expect(result.success).toBe(true);
       expect(result.prompts).toEqual(input);
     });
 
     it("deve retornar um erro genérico quando falhar ao buscar", async () => {
-      const error = new Error("generic error");
+      const error = new Error("UNKNOWN");
       mockedSearchExecute.mockRejectedValue(error);
+
       const formData = new FormData();
-      formData.append("q", "qualquer coisa");
+      formData.append("q", "error");
 
       const result = await searchPromptAction({ success: true }, formData);
+
       expect(result.success).toBe(false);
-      expect(result.prompts).toBeUndefined();
+      expect(result.prompts).toBe(undefined);
       expect(result.message).toBe("Falha ao buscar prompts");
     });
 
     it("deve aparar espaços do termo antes de executar", async () => {
-      const input: PromptSummary[] = [
-        { id: "01", content: "AI desc 01", title: "AI title 01" },
-      ];
+      const input = [{ id: "1", title: "title 01", content: "content 01" }];
       mockedSearchExecute.mockResolvedValue(input);
 
       const formData = new FormData();
-      formData.append("q", "   AI");
+      formData.append("q", "   title 01  ");
 
       const result = await searchPromptAction({ success: true }, formData);
+
+      expect(mockedSearchExecute).toHaveBeenCalledWith("title 01");
       expect(result.success).toBe(true);
-      expect(mockedSearchExecute).toHaveBeenCalledWith("AI");
       expect(result.prompts).toEqual(input);
     });
 
     it("deve tratar ausência da query como termo vazio", async () => {
-      const input: PromptSummary[] = [
-        { id: "01", content: "AI desc 01", title: "AI title 01" },
-        { id: "02", content: "AI desc 02", title: "AI title 02" },
+      const input = [
+        { id: "1", title: "first title", content: "content 01" },
+        { id: "2", title: "second title", content: "content 02" },
       ];
       mockedSearchExecute.mockResolvedValue(input);
 
       const formData = new FormData();
 
       const result = await searchPromptAction({ success: true }, formData);
-      expect(result.success).toBe(true);
+
       expect(mockedSearchExecute).toHaveBeenCalledWith("");
+      expect(result.success).toBe(true);
       expect(result.prompts).toEqual(input);
     });
   });

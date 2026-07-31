@@ -17,4 +17,8 @@ jest.mock("next/navigation", () => {
   };
 });
 
+jest.mock("next/cache", () => ({
+  revalidatePath: jest.fn(),
+}));
+
 expect.extend({});
