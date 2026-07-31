@@ -5,6 +5,9 @@ import { PrismaClient } from "@/generated/prisma/client";
 
 export class PrismaPromptRepository implements PromptRepository {
   constructor(private prisma: PrismaClient) {}
+  async delete(id: string): Promise<void> {
+    await this.prisma.prompt.delete({ where: { id } });
+  }
 
   async create(data: CreatePromptDTO): Promise<void> {
     await this.prisma.prompt.create({

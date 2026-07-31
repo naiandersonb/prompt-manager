@@ -8,4 +8,5 @@ export interface PromptRepository {
   findById: (id: string) => Promise<Prompt | null>;
   searchMany: (term: string) => Promise<Prompt[]>;
   findByTitle(title: string): Promise<Prompt | null>;
+  delete(id: string): Promise<void>;
 }
