@@ -9,6 +9,7 @@ import {
   X as CloseButton,
   Menu,
 } from "lucide-react";
+import { motion } from "motion/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ChangeEvent,
@@ -23,6 +24,8 @@ import { PromptList } from "../prompts/prompt-list";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Spinner } from "../ui/spinner";
+
+const fadeTransition = { duration: 0.2, delay: 0.1 };
 
 export type SidebarContentProps = {
   prompts: PromptSummary[];
@@ -82,8 +85,10 @@ export const SidebarContent = ({ prompts }: SidebarContentProps) => {
       >
         <Menu className="w-5 h-5 text-gray-100" />
       </Button>
-      <aside
+      <motion.aside
         className={`border-r border-gray-700 flex flex-col h-full bg-gray-800 transition-[transform,width] duration-300 ease-in-out fixed md:relative left-0 top-0 z-50 md:z-auto w-[80vw] sm:w-[320px] ${isCollapsed ? "md:w-18" : "md:w-[384px]"} ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
+        initial={false}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
       >
         {isCollapsed && (
           <section className="px-2 py-6">
@@ -91,7 +96,7 @@ export const SidebarContent = ({ prompts }: SidebarContentProps) => {
               <Button
                 onClick={expandSidebar}
                 size="icon"
-                className="hidden md:inline-flex p-2 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-accent-500 rounded-lg transition-colors"
+                className="md:inline-flex p-2 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-accent-500 rounded-lg transition-colors"
                 aria-label="Expandir sidebar"
                 title="Expandir sidebar"
               >
@@ -126,7 +131,12 @@ export const SidebarContent = ({ prompts }: SidebarContentProps) => {
                   </Button>
                 </div>
               </div>
-              <div className="flex w-full items-center justify-between mb-6">
+              <motion.div
+                className="flex w-full items-center justify-between mb-6"
+                initial={false}
+                animate={{ opacity: 1 }}
+                transition={fadeTransition}
+              >
                 <header className="flex w-full items-center justify-between">
                   <Logo />
                   <Button
@@ -139,7 +149,7 @@ export const SidebarContent = ({ prompts }: SidebarContentProps) => {
                     <ArrowLeftToLine className="w-5 h-5 text-gray-100" />
                   </Button>
                 </header>
-              </div>
+              </motion.div>
 
               <section className="mb-5">
                 <form
@@ -167,23 +177,32 @@ export const SidebarContent = ({ prompts }: SidebarContentProps) => {
                 </form>
               </section>
 
-              <div>
+              <motion.div
+                initial={false}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={fadeTransition}
+              >
                 <Button onClick={handleNewPrompt} className="w-full" size="lg">
                   <AddIcon className="w-5 h-5 mr-2" />
                   Novo prompt
                 </Button>
-              </div>
+              </motion.div>
             </section>
 
-            <nav
+            <motion.nav
               className="flex-1 overflow-auto px-6 pb-6"
               aria-label="Lista de prompts"
+              initial={false}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={fadeTransition}
             >
               <PromptList prompts={promptsList} />
-            </nav>
+            </motion.nav>
           </>
         )}
-      </aside>
+      </motion.aside>
     </>
   );
 };

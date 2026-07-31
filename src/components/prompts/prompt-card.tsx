@@ -1,6 +1,7 @@
 import { deletePromptAction } from "@/app/actions/prompt.actions";
 import { PromptSummary } from "@/core/domain/prompts/prompt.entity";
 import { Trash as DeleteIcon, Loader2 as LoadingIcon } from "lucide-react";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -46,7 +47,17 @@ export const PromptCard = ({ prompt }: PromptCardProps) => {
   };
 
   return (
-    <li className="p-3 rounded-lg transition-all duration-200 group relative hover:bg-neutral-800">
+    <motion.li
+      className="p-3 rounded-lg transition-all duration-200 group relative hover:bg-gray-700"
+      aria-label={prompt.title}
+      initial={{ opacity: 1, height: "auto" }}
+      exit={{
+        opacity: 0,
+        height: 0,
+        marginBottom: 0,
+        transition: { duration: 0.3, ease: "easeInOut" },
+      }}
+    >
       <header className="flex items-start justify-between">
         <Link href={`/${prompt.id}`} prefetch className="flex-1 min-w-0">
           <h3 className="font-medium text-sm text-white group-hover:text-accent-300 transition-colors">
@@ -94,6 +105,6 @@ export const PromptCard = ({ prompt }: PromptCardProps) => {
           </AlertDialogContent>
         </AlertDialog>
       </header>
-    </li>
+    </motion.li>
   );
 };
