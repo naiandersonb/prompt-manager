@@ -1,12 +1,11 @@
 import { PromptForm, PromptFormProps } from "@/components/prompts/prompt-form";
 import { render, screen } from "@/lib/test-utils";
 import userEvent from "@testing-library/user-event";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-const refreshMock = jest.fn();
-jest.mock("next/navigation", () => ({
-  useRouter: () => ({ refresh: refreshMock }),
-}));
+const routerMock = jest.mocked(useRouter);
+const refreshMock = routerMock().refresh;
 
 const createActionMock = jest.fn();
 const updateActionMock = jest.fn();
