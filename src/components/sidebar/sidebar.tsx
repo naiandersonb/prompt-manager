@@ -1,6 +1,7 @@
 import { PromptSummary } from "@/core/domain/prompts/prompt.entity";
 import { PrismaPromptRepository } from "@/infra/repository/prisma-prompt.repository";
 import { prisma } from "@/lib/prisma";
+import { Suspense } from "react";
 import { SidebarContent } from "./sidebar-content";
 
 export const Sidebar = async () => {
@@ -15,5 +16,9 @@ export const Sidebar = async () => {
     initialPrompts = [];
   }
 
-  return <SidebarContent prompts={initialPrompts} />;
+  return (
+    <Suspense>
+      <SidebarContent prompts={initialPrompts} />
+    </Suspense>
+  );
 };
