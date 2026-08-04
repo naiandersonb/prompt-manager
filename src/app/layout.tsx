@@ -2,6 +2,7 @@ import { Sidebar } from "@/components/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -25,7 +26,9 @@ export default function RootLayout({
       <body
         className={`${inter.variable} antialiased bg-neutral-950 text-white flex h-screen`}
       >
-        <Sidebar />
+        <Suspense>
+          <Sidebar />
+        </Suspense>
         <main className="relative flex-1 overflow-auto min-w-0">
           <div className="p-4 sm:p-6 md:p-8 max-w-full md:max-w-3xl mx-auto h-full">
             {children}
